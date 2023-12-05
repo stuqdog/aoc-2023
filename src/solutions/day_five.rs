@@ -1,8 +1,5 @@
-use std::collections::HashMap;
-
 fn collect_to_map(s: &str) -> Vec<Vec<i64>> {
-    return s
-        .split_once(":\n")
+    s.split_once(":\n")
         .unwrap()
         .1
         .split("\n")
@@ -13,7 +10,7 @@ fn collect_to_map(s: &str) -> Vec<Vec<i64>> {
                 .collect();
             nums
         })
-        .collect();
+        .collect()
 }
 pub fn main() {
     let input = "seeds: 3489262449 222250568 2315397239 327729713 1284963 12560465 1219676803 10003052 291763704 177898461 136674754 107182783 2917625223 260345082 1554280164 216251358 3900312676 5629667 494259693 397354410
@@ -254,7 +251,7 @@ humidity-to-location map:
 1094349260 2371880115 1137701378";
 
     let inputs: Vec<&str> = input.split("\n\n").into_iter().collect();
-    let mut seeds: Vec<i64> = inputs[0]
+    let seeds: Vec<i64> = inputs[0]
         .split_once(": ")
         .unwrap()
         .1
@@ -274,11 +271,9 @@ humidity-to-location map:
     let maps = vec![m1, m2, m3, m4, m5, m6, m7];
 
     let mut solution = i64::MAX;
-    let mut p = 1;
     for seed in seeds.clone() {
         let mut val = seed;
         for map in &maps {
-            p += 1;
             for line in map {
                 let (b, a, c) = (line[0], line[1], line[2]);
                 if val >= a && val < a + c {
@@ -290,7 +285,7 @@ humidity-to-location map:
         }
         solution = solution.min(val);
     }
-    println!("day one: {solution}");
+    println!("part one: {solution}");
 
     let mut part_two = i64::MAX;
     for i in (0..seeds.len()).step_by(2) {
@@ -301,7 +296,6 @@ humidity-to-location map:
         while cur_val <= end {
             let mut val = cur_val;
             for map in &maps {
-                p += 1;
                 for line in map {
                     let (b, a, c) = (line[0], line[1], line[2]);
                     if val >= a && val < a + c {
@@ -317,5 +311,5 @@ humidity-to-location map:
             cur_val += max_range;
         }
     }
-    println!("{part_two}");
+    println!("part two: {part_two}");
 }

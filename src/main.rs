@@ -13,6 +13,9 @@ fn main() {
     println!("\nDay four");
     solutions::day_four::main();
 
-    println!("\nDay five");
-    solutions::day_five::main();
+    println!("\nDay five runs slow");
+    //solutions::day_five::main();
+
+    println!("\nDay six");
+    solutions::day_six::main();
 }

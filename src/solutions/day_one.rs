@@ -1004,10 +1004,10 @@ sevendxbninefour2fourclmln
 
     let mut sum = 0;
     for line in input.lines() {
-        let mut nums = line.chars().into_iter().filter(|c| c.is_digit(10)).map(|c| c.to_digit(10).unwrap());
+        let mut nums = line.chars().filter_map(|c| c.to_digit(10));
         let first = nums.nth(0).unwrap();
         let second = nums.last().unwrap_or(first);
-        sum +=  10 * first;
+        sum += 10 * first;
         sum += second;
     }
 
@@ -1015,7 +1015,27 @@ sevendxbninefour2fourclmln
 
     sum = 0;
 
-    let nums_map : HashMap::<&str, u32> = [("1", 1), ("2", 2), ("3", 3), ("4", 4), ("5", 5), ("6", 6), ("7", 7), ("8", 8), ("9", 9), ("one", 1), ("two", 2), ("three", 3), ("four", 4), ("five", 5), ("six", 6), ("seven", 7), ("eight", 8), ("nine", 9)].into();
+    let nums_map: HashMap<&str, u32> = [
+        ("1", 1),
+        ("2", 2),
+        ("3", 3),
+        ("4", 4),
+        ("5", 5),
+        ("6", 6),
+        ("7", 7),
+        ("8", 8),
+        ("9", 9),
+        ("one", 1),
+        ("two", 2),
+        ("three", 3),
+        ("four", 4),
+        ("five", 5),
+        ("six", 6),
+        ("seven", 7),
+        ("eight", 8),
+        ("nine", 9),
+    ]
+    .into();
 
     for line in input.lines() {
         let mut first: Option<u32> = None;
@@ -1030,7 +1050,7 @@ sevendxbninefour2fourclmln
             }
             new_line = new_line.split_at_mut(1).1.to_string();
         }
-        sum +=  10 * first.unwrap();
+        sum += 10 * first.unwrap();
         sum += second.unwrap();
     }
 

@@ -250,13 +250,12 @@ humidity-to-location map:
 2232050638 3729111357 565855939
 1094349260 2371880115 1137701378";
 
-    let inputs: Vec<&str> = input.split("\n\n").into_iter().collect();
+    let inputs: Vec<&str> = input.split("\n\n").collect();
     let seeds: Vec<i64> = inputs[0]
         .split_once(": ")
         .unwrap()
         .1
         .split_whitespace()
-        .into_iter()
         .map(|i| i.parse::<i64>().unwrap())
         .collect();
 

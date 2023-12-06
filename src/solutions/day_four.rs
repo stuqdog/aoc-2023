@@ -213,12 +213,10 @@ Card 201: 71 92 68 45 33 17 99 32 96 93 | 90 82 79 26 20 85 94 61 31 84 73 30  4
         let (winning, actual) = actual_input.split_once(" | ").unwrap();
         let winning: HashSet<i32> = winning
             .split_whitespace()
-            .into_iter()
             .map(|c| c.parse::<i32>().unwrap())
             .collect();
         let actual: Vec<i32> = actual
             .split_whitespace()
-            .into_iter()
             .map(|c| c.parse::<i32>().unwrap())
             .collect();
 

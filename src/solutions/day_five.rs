@@ -4,11 +4,9 @@ fn collect_to_map(s: &str) -> Vec<Vec<i64>> {
         .1
         .split("\n")
         .map(|s| {
-            let nums: Vec<i64> = s
-                .split_whitespace()
+            s.split_whitespace()
                 .map(|i| i.parse::<i64>().unwrap())
-                .collect();
-            nums
+                .collect()
         })
         .collect()
 }

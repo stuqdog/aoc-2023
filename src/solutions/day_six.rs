@@ -39,20 +39,16 @@ Distance:   208   1412   1257   1410";
 
     println!("part one: {part_one}");
 
-    let (time, distance) = input.split_once("\n").unwrap();
-    let distance = distance
-        .chars()
-        .filter(|c| c.is_digit(10))
-        .collect::<String>()
-        .parse::<i64>()
-        .unwrap();
-    let time = time
-        .chars()
-        .filter(|c| c.is_digit(10))
-        .collect::<String>()
-        .parse::<i64>()
-        .unwrap();
+    let (time, dist) = input.split_once("\n").unwrap();
+    let dist = dist.chars().fold(0 as i64, |acc, c| match c.to_digit(10) {
+        Some(i) => acc * 10 + i as i64,
+        None => acc,
+    });
+    let time = time.chars().fold(0 as i64, |acc, c| match c.to_digit(10) {
+        Some(i) => acc * 10 + i as i64,
+        None => acc,
+    });
 
-    let part_two = helper(time, distance);
+    let part_two = helper(time, dist);
     println!("part two: {part_two}");
 }

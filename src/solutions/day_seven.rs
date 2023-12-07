@@ -65,24 +65,23 @@ fn score_hand(hand: &mut HashMap<char, i32>) -> i32 {
 }
 
 fn custom_compare(left: &(&str, i32), right: &(&str, i32)) -> Ordering {
-    let mut left_map: HashMap<char, i32> = HashMap::new();
-    let mut right_map: HashMap<char, i32> = HashMap::new();
+    let mut left_map = left.0.chars().fold(HashMap::new(), |mut acc, c| {
+        acc.entry(c).and_modify(|i| *i += 1).or_insert(1);
+        acc
+    });
 
-    for c in left.0.chars() {
-        left_map.entry(c).and_modify(|i| *i += 1).or_insert(1);
-    }
-    for c in right.0.chars() {
-        right_map.entry(c).and_modify(|i| *i += 1).or_insert(1);
-    }
+    let mut right_map = right.0.chars().fold(HashMap::new(), |mut acc, c| {
+        acc.entry(c).and_modify(|i| *i += 1).or_insert(1);
+        acc
+    });
 
     let left_score = score_hand(&mut left_map);
     let right_score = score_hand(&mut right_map);
 
-    if left_score != right_score {
-        return left_score.cmp(&right_score);
+    match left_score.cmp(&right_score) {
+        Ordering::Equal => custom_str_compare(left.0, right.0),
+        ordering => ordering,
     }
-
-    custom_str_compare(left.0, right.0)
 }
 
 pub fn main() {

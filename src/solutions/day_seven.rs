@@ -21,10 +21,10 @@ fn custom_str_compare(left: &str, right: &str) -> Ordering {
         if lc != rc {
             let lc = lc
                 .to_digit(10)
-                .unwrap_or_else(|| card_ranks.get(&lc).unwrap_or(&0).to_owned());
+                .unwrap_or_else(|| *card_ranks.get(&lc).unwrap());
             let rc = rc
                 .to_digit(10)
-                .unwrap_or_else(|| card_ranks.get(&rc).unwrap_or(&0).to_owned());
+                .unwrap_or_else(|| *card_ranks.get(&rc).unwrap());
             return lc.cmp(&rc);
         }
     }
@@ -32,35 +32,25 @@ fn custom_str_compare(left: &str, right: &str) -> Ordering {
 }
 
 fn score_hand(hand: &mut HashMap<char, i32>) -> i32 {
-    let mut j_count = 0;
-    if PART_TWO.load(Relaxed) {
-        j_count = hand.remove(&'J').unwrap_or(j_count);
-    }
+    let j_count = match PART_TWO.load(Relaxed) {
+        false => 0,
+        true => hand.remove(&'J').unwrap_or(0),
+    };
     let mut card_counts = hand.values().map(|i| *i).collect::<Vec<i32>>();
     card_counts.sort_by(|a, b| b.cmp(a));
 
-    if PART_TWO.load(Relaxed) {
-        if card_counts.len() == 0 {
-            card_counts.push(5);
-        } else {
-            card_counts[0] = card_counts[0] + j_count;
-        }
+    if card_counts.is_empty() {
+        card_counts.push(5);
+    } else {
+        card_counts[0] = card_counts[0] + j_count;
     }
 
-    if card_counts[0] == 5 {
-        7
-    } else if card_counts[0] == 4 {
-        6
-    } else if card_counts[0] == 3 && card_counts[1] == 2 {
-        5
-    } else if card_counts[0] == 3 {
-        4
-    } else if card_counts[0] == 2 && card_counts[1] == 2 {
-        3
-    } else if card_counts[0] == 2 {
-        2
-    } else {
-        1
+    match card_counts[0] {
+        5 => 7,
+        4 => 6,
+        3 => 3 + card_counts[1],
+        2 => 1 + card_counts[1],
+        _ => 1,
     }
 }
 
@@ -1086,8 +1076,8 @@ A555A 256
 T9643 374
 77787 364";
 
-    for (part, part_two) in [false, true].iter().enumerate() {
-        PART_TWO.store(*part_two, Relaxed);
+    for (part, is_part_two) in [false, true].iter().enumerate() {
+        PART_TWO.store(*is_part_two, Relaxed);
         let mut hands_and_bids: Vec<(&str, i32)> = input
             .lines()
             .map(|s| s.split_once(" ").unwrap())

@@ -42,4 +42,13 @@ fn main() {
 
     println!("\nDay 14");
     solutions::day_14::main();
+
+    println!("\nDay 15");
+    solutions::day_15::main();
+
+    println!("\nDay 16 is just a tad slow");
+    //solutions::day_16::main();
+
+    println!("\nDay 17 is sloooow");
+    solutions::day_17::main();
 }

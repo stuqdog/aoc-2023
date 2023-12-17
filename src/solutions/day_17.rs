@@ -1,55 +1,36 @@
 use std::collections::{HashMap, VecDeque};
 
 #[derive(Hash, PartialEq, Eq, Clone, Copy)]
-struct Pos_ {
+struct Pos {
     row: i32,
     col: i32,
     dir: (i32, i32),
     dir_count: u8,
 }
 
-impl Pos_ {
-    fn new(dir: (i32, i32), row: i32, col: i32, dir_count: u8) -> Self {
+impl Pos {
+    fn new(dir: (i32, i32)) -> Self {
         Self {
-            row,
-            col,
-            dir_count,
+            row: 0,
+            col: 0,
+            dir_count: 0,
             dir,
         }
     }
-}
-
-#[derive(Clone, Copy)]
-struct Pos {
-    pos: Pos_,
-    score: u32,
-}
-
-impl Pos {
-    fn new(row: i32, col: i32, dir_count: u8, dir: (i32, i32), score: u32) -> Self {
-        Self {
-            pos: Pos_::new(dir, row, col, dir_count),
-            score,
-        }
-    }
-
     fn get_neighbors(self, part_two: bool) -> Vec<Self> {
         let mut neighbors: Vec<Self> = Vec::new();
-        if (part_two && self.pos.dir_count >= 4) || (!part_two) {
+        if (part_two && self.dir_count >= 4) || (!part_two) {
             neighbors = vec![-1, 1]
                 .iter()
                 .map(|dir| Self {
-                    score: self.score,
-                    pos: Pos_ {
-                        row: self.pos.row,
-                        col: self.pos.col,
-                        dir_count: 0,
-                        dir: (self.pos.dir.1 * dir, self.pos.dir.0 * dir),
-                    },
+                    row: self.row,
+                    col: self.col,
+                    dir_count: 0,
+                    dir: (self.dir.1 * dir, self.dir.0 * dir),
                 })
                 .collect()
         };
-        if (part_two && self.pos.dir_count < 10) || (!part_two && self.pos.dir_count < 3) {
+        if (part_two && self.dir_count < 10) || (!part_two && self.dir_count < 3) {
             neighbors.push(self);
         }
         neighbors.iter().map(|p| p.move_()).collect()
@@ -57,20 +38,10 @@ impl Pos {
 
     fn move_(&self) -> Self {
         Self {
-            score: self.score,
-            pos: Pos_ {
-                row: self.pos.row + self.pos.dir.0,
-                col: self.pos.col + self.pos.dir.1,
-                dir_count: self.pos.dir_count + 1,
-                dir: self.pos.dir,
-            },
-        }
-    }
-
-    fn add_score(self, score: u32) -> Self {
-        Self {
-            score: self.score + score,
-            pos: self.pos,
+            row: self.row + self.dir.0,
+            col: self.col + self.dir.1,
+            dir_count: self.dir_count + 1,
+            dir: self.dir,
         }
     }
 }
@@ -224,32 +195,31 @@ pub fn main() {
         // seen is too specific and it makes it pretty slow! we could make it more generic (e.g. if
         // we've seen at this count _or lower if going in same direction or any count going in a
         // diff direction_) to speed things up a bit but that's finnicky to code and I'm lazy!
-        let mut seen: HashMap<Pos_, u32> = HashMap::new();
+        let mut seen: HashMap<Pos, u32> = HashMap::new();
         let mut solution = u32::MAX;
-        let mut horizon: VecDeque<Pos> =
-            vec![Pos::new(0, 0, 0, (0, 1), 0), Pos::new(0, 0, 0, (1, 0), 0)].into();
-        while let Some(pos) = horizon.pop_front() {
-            if pos.score >= solution {
+        let mut horizon: VecDeque<(Pos, u32)> =
+            vec![(Pos::new((0, 1)), 0), (Pos::new((1, 0)), 0)].into();
+        while let Some((pos, score)) = horizon.pop_front() {
+            if score >= solution {
                 continue;
             }
-            let prev_score = seen.get(&pos.pos).unwrap_or(&u32::MAX);
-            if prev_score <= &pos.score {
+            let prev_score = seen.get(&pos).unwrap_or(&u32::MAX);
+            if prev_score <= &score {
                 continue;
             }
-            if pos.pos.row == end_row && pos.pos.col == end_col {
-                if !part_two || pos.pos.dir_count >= 4 {
-                    solution = solution.min(pos.score);
+            if pos.row == end_row && pos.col == end_col {
+                if !part_two || pos.dir_count >= 4 {
+                    solution = solution.min(score);
                     continue;
                 }
             }
-            seen.insert(pos.pos, pos.score);
+            seen.insert(pos, score);
             pos.get_neighbors(*part_two)
                 .iter()
-                .filter(|p| {
-                    p.pos.row >= 0 && p.pos.row <= end_row && p.pos.col >= 0 && p.pos.col <= end_col
-                })
-                .map(|p| p.add_score(input[p.pos.row as usize][p.pos.col as usize]))
-                .for_each(|p| horizon.push_back(p));
+                .filter(|p| p.row >= 0 && p.row <= end_row && p.col >= 0 && p.col <= end_col)
+                .for_each(|p| {
+                    horizon.push_back((*p, score + input[p.row as usize][p.col as usize]))
+                });
         }
         let part = match part_two {
             true => "two",

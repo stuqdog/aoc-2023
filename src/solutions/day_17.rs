@@ -34,63 +34,39 @@ impl Pos {
     }
 
     fn get_neighbors(self, part_two: bool) -> Vec<Self> {
-        let right = Self {
-            score: self.score,
-            pos: Pos_ {
-                row: self.pos.row,
-                col: self.pos.col,
-                dir_count: 0,
-                dir: (self.pos.dir.1, self.pos.dir.0),
-            },
+        let mut neighbors: Vec<Self> = Vec::new();
+        if (part_two && self.pos.dir_count >= 4) || (!part_two) {
+            neighbors = vec![-1, 1]
+                .iter()
+                .map(|dir| Self {
+                    score: self.score,
+                    pos: Pos_ {
+                        row: self.pos.row,
+                        col: self.pos.col,
+                        dir_count: 0,
+                        dir: (self.pos.dir.1 * dir, self.pos.dir.0 * dir),
+                    },
+                })
+                .collect()
         };
-        let left = Self {
+        if (part_two && self.pos.dir_count < 10) || (!part_two && self.pos.dir_count < 3) {
+            neighbors.push(self);
+        }
+        neighbors.iter().map(|p| p.move_()).collect()
+    }
+
+    fn move_(&self) -> Self {
+        Self {
             score: self.score,
             pos: Pos_ {
-                row: self.pos.row,
-                col: self.pos.col,
-                dir_count: 0,
-                dir: (-self.pos.dir.1, -self.pos.dir.0),
-            },
-        };
-        let straight = Self {
-            score: self.score,
-            pos: Pos_ {
-                row: self.pos.row,
-                col: self.pos.col,
-                dir_count: self.pos.dir_count,
+                row: self.pos.row + self.pos.dir.0,
+                col: self.pos.col + self.pos.dir.1,
+                dir_count: self.pos.dir_count + 1,
                 dir: self.pos.dir,
             },
-        };
-        if part_two {
-            if self.pos.dir_count < 4 {
-                vec![straight]
-            } else if self.pos.dir_count >= 10 {
-                vec![right, left]
-            } else {
-                vec![right, left, straight]
-            }
-        } else if self.pos.dir_count >= 3 {
-            vec![right, left]
-        } else {
-            vec![right, left, straight]
         }
     }
 
-    fn move_(&self, part_two: bool) -> Option<Self> {
-        if !part_two && self.pos.dir_count >= 3 {
-            None
-        } else {
-            Some(Self {
-                score: self.score,
-                pos: Pos_ {
-                    row: self.pos.row + self.pos.dir.0,
-                    col: self.pos.col + self.pos.dir.1,
-                    dir_count: self.pos.dir_count + 1,
-                    dir: self.pos.dir,
-                },
-            })
-        }
-    }
     fn add_score(self, score: u32) -> Self {
         Self {
             score: self.score + score,
@@ -242,12 +218,12 @@ pub fn main() {
 241256124152326322554142667257454522265554757273453374213777577356787834227842242227264715774737665132267716542367135321542134465324433441643
 525456252341264533166516163744757274726223464616557543136577647326736286542837871744411672175662567555261523634677477436662463555523615556434".lines().map(|s| s.chars().map(|c| c.to_digit(10).unwrap_or(0)).collect::<Vec<u32>>()).collect::<Vec<Vec<u32>>>();
 
-    let end_row = input.len() - 1;
-    let end_col = input[0].len() - 1;
+    let end_row = (input.len() - 1) as i32;
+    let end_col = (input[0].len() - 1) as i32;
     for part_two in [true, false].iter() {
-        // seen is too specific and it makes it pretty slow! we could make it more generic (if
-        // we've seen at this count or lower if going in same direction or any count going in a
-        // diff direction) to speed things up a bit but that's finnicky to code and I'm lazy!
+        // seen is too specific and it makes it pretty slow! we could make it more generic (e.g. if
+        // we've seen at this count _or lower if going in same direction or any count going in a
+        // diff direction_) to speed things up a bit but that's finnicky to code and I'm lazy!
         let mut seen: HashMap<Pos_, u32> = HashMap::new();
         let mut solution = u32::MAX;
         let mut horizon: VecDeque<Pos> =
@@ -260,7 +236,7 @@ pub fn main() {
             if prev_score <= &pos.score {
                 continue;
             }
-            if pos.pos.row == end_row as i32 && pos.pos.col == end_col as i32 {
+            if pos.pos.row == end_row && pos.pos.col == end_col {
                 if !part_two || pos.pos.dir_count >= 4 {
                     solution = solution.min(pos.score);
                     continue;
@@ -269,12 +245,8 @@ pub fn main() {
             seen.insert(pos.pos, pos.score);
             pos.get_neighbors(*part_two)
                 .iter()
-                .filter_map(|p| p.move_(*part_two))
                 .filter(|p| {
-                    p.pos.row >= 0
-                        && p.pos.row <= end_row as i32
-                        && p.pos.col >= 0
-                        && p.pos.col <= end_col as i32
+                    p.pos.row >= 0 && p.pos.row <= end_row && p.pos.col >= 0 && p.pos.col <= end_col
                 })
                 .map(|p| p.add_score(input[p.pos.row as usize][p.pos.col as usize]))
                 .for_each(|p| horizon.push_back(p));

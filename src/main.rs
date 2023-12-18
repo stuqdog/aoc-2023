@@ -53,5 +53,5 @@ fn main() {
     //solutions::day_17::main();
 
     println!("\nDay 18 is a tad slow");
-    //solutions::day_18::main();
+    solutions::day_18::main();
 }

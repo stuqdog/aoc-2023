@@ -737,22 +737,20 @@ U 12 (#2d7e63)"
         let mut highest_row = i64::MIN;
         let mut lowest_row = i64::MAX;
         let mut walls: Vec<(i64, i64, i64)> = Vec::new();
-        let mut bottom_corners: HashSet<(i64, i64)> = HashSet::new();
         let mut horizontal_walls: HashSet<(i64, i64, i64)> = HashSet::new();
         let mut total = 0;
         for (r, v) in input.iter() {
             total += v;
             match r {
-                'U' => bottom_corners.insert((cur_row, cur_col)),
-                'D' => bottom_corners.insert((cur_row + v, cur_col)),
-                'L' => horizontal_walls.insert((cur_row, cur_col - v, cur_col)),
-                _ => horizontal_walls.insert((cur_row, cur_col, cur_col + v)),
-            };
-            match r {
                 'U' => walls.push((cur_col, cur_row - v, cur_row)),
                 'D' => walls.push((cur_col, cur_row, cur_row + v)),
-                _ => (),
-            }
+                'L' => {
+                    horizontal_walls.insert((cur_row, cur_col - v, cur_col));
+                }
+                _ => {
+                    horizontal_walls.insert((cur_row, cur_col, cur_col + v));
+                }
+            };
             (cur_row, cur_col) = match r {
                 'U' => (cur_row - v, cur_col),
                 'D' => (cur_row + v, cur_col),
@@ -769,7 +767,7 @@ U 12 (#2d7e63)"
             let mut cols: Vec<(i64, bool)> = Vec::new();
             for (col, top, bottom) in &walls {
                 if top <= &row && bottom >= &row {
-                    cols.push((*col, bottom_corners.contains(&(row, *col))));
+                    cols.push((*col, bottom == &row));
                 }
             }
             cols.sort_by(|a, b| a.0.cmp(&b.0));

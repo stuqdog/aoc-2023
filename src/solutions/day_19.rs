@@ -1,8 +1,8 @@
 use std::collections::HashMap;
 
 enum RuleType {
-    Greater(char, i32, String),
-    Less(char, i32, String),
+    Greater(char, i64, String),
+    Less(char, i64, String),
     Automatic(String),
 }
 
@@ -12,14 +12,14 @@ impl RuleType {
             let (val, dest) = remainder.split_once(':').unwrap();
             Self::Greater(
                 comp.chars().next().unwrap(),
-                val.parse::<i32>().unwrap(),
+                val.parse::<i64>().unwrap(),
                 dest.to_string(),
             )
         } else if let Some((comp, remainder)) = s.split_once('<') {
             let (val, dest) = remainder.split_once(':').unwrap();
             Self::Less(
                 comp.chars().next().unwrap(),
-                val.parse::<i32>().unwrap(),
+                val.parse::<i64>().unwrap(),
                 dest.to_string(),
             )
         } else {
@@ -48,6 +48,7 @@ impl Rule {
     }
 }
 
+#[derive(Clone, Copy)]
 struct InputRange {
     x: (i64, i64),
     m: (i64, i64),
@@ -62,20 +63,20 @@ impl InputRange {
 }
 
 struct Input {
-    x: i32,
-    m: i32,
-    a: i32,
-    s: i32,
+    x: i64,
+    m: i64,
+    a: i64,
+    s: i64,
 }
 
 impl Input {
     fn of_string(st: &str) -> Self {
         let st = st.trim_start_matches('{').trim_end_matches('}');
         let mut st = st.split(',');
-        let x = st.next().unwrap().split_at(2).1.parse::<i32>().unwrap();
-        let m = st.next().unwrap().split_at(2).1.parse::<i32>().unwrap();
-        let a = st.next().unwrap().split_at(2).1.parse::<i32>().unwrap();
-        let s = st.next().unwrap().split_at(2).1.parse::<i32>().unwrap();
+        let x = st.next().unwrap().split_at(2).1.parse::<i64>().unwrap();
+        let m = st.next().unwrap().split_at(2).1.parse::<i64>().unwrap();
+        let a = st.next().unwrap().split_at(2).1.parse::<i64>().unwrap();
+        let s = st.next().unwrap().split_at(2).1.parse::<i64>().unwrap();
         Self { x, m, a, s }
     }
 }
@@ -828,26 +829,6 @@ rc{s<587:A,R}
         .split_once("\n\n")
         .unwrap();
 
-    //let (rules, inputs) = "px{a<2006:qkq,m>2090:A,rfg}
-    //pv{a>1716:R,A}
-    //lnx{m>1548:A,A}
-    //rfg{s<537:gd,x>2440:R,A}
-    //qs{s>3448:A,lnx}
-    //qkq{x<1416:A,crn}
-    //crn{x>2662:A,R}
-    //in{s<1351:px,qqz}
-    //qqz{s>2770:qs,m<1801:hdj,R}
-    //gd{a>3333:R,R}
-    //hdj{m>838:A,pv}
-
-    //{x=787,m=2655,a=1222,s=2876}
-    //{x=1679,m=44,a=2067,s=496}
-    //{x=2036,m=264,a=79,s=2244}
-    //{x=2461,m=1339,a=466,s=291}
-    //{x=2127,m=1623,a=2188,s=1013}"
-    //.split_once("\n\n")
-    //.unwrap();
-
     let rules =
         rules
             .lines()
@@ -915,11 +896,107 @@ rc{s<587:A,R}
     println!("part one: {p1}");
 
     let mut cases: Vec<(InputRange, String)> = Vec::new();
+    let mut accepted: Vec<InputRange> = Vec::new();
     cases.push((
         InputRange::new((1, 4000), (1, 4000), (1, 4000), (1, 4000)),
         "in".to_string(),
     ));
-    while let Some((case, rule)) = cases.pop() {}
-}
+    while let Some((mut case, loc)) = cases.pop() {
+        if loc == "A".to_string() {
+            accepted.push(case);
+            continue;
+        }
+        if loc == "R".to_string() {
+            continue;
+        }
 
-// 551933 too big
+        let rule = rules.get(&loc).unwrap();
+        for r in &rule.rules {
+            match r {
+                RuleType::Automatic(s) => cases.push((case, s.clone())),
+                RuleType::Less(c, v, d) => {
+                    let v = *v;
+                    let d = d.clone();
+                    let actual_value = match c {
+                        'x' => case.x,
+                        'm' => case.m,
+                        'a' => case.a,
+                        _ => case.s,
+                    };
+                    if actual_value.0 > v {
+                        continue;
+                    }
+                    let mut new_case = case.clone();
+                    let new_ranges = ((actual_value.0, v - 1), (v, actual_value.1));
+                    match c {
+                        'x' => {
+                            new_case.x = new_ranges.0;
+                            case.x = new_ranges.1;
+                            cases.push((new_case, d));
+                        }
+                        'm' => {
+                            new_case.m = new_ranges.0;
+                            case.m = new_ranges.1;
+                            cases.push((new_case, d));
+                        }
+                        'a' => {
+                            new_case.a = new_ranges.0;
+                            case.a = new_ranges.1;
+                            cases.push((new_case, d));
+                        }
+                        _ => {
+                            new_case.s = new_ranges.0;
+                            case.s = new_ranges.1;
+                            cases.push((new_case, d));
+                        }
+                    }
+                }
+                RuleType::Greater(c, v, d) => {
+                    let v = *v;
+                    let d = d.clone();
+                    let actual_value = match c {
+                        'x' => case.x,
+                        'm' => case.m,
+                        'a' => case.a,
+                        _ => case.s,
+                    };
+                    if actual_value.1 < v {
+                        continue;
+                    }
+                    let mut new_case = case.clone();
+                    let new_ranges = ((actual_value.0, v), (v + 1, actual_value.1));
+                    match c {
+                        'x' => {
+                            new_case.x = new_ranges.1;
+                            case.x = new_ranges.0;
+                            cases.push((new_case, d));
+                        }
+                        'm' => {
+                            new_case.m = new_ranges.1;
+                            case.m = new_ranges.0;
+                            cases.push((new_case, d));
+                        }
+                        'a' => {
+                            new_case.a = new_ranges.1;
+                            case.a = new_ranges.0;
+                            cases.push((new_case, d));
+                        }
+                        _ => {
+                            new_case.s = new_ranges.1;
+                            case.s = new_ranges.0;
+                            cases.push((new_case, d));
+                        }
+                    }
+                }
+            }
+        }
+    }
+    let mut part_two = 0;
+    for case in accepted {
+        part_two += (case.x.1 - case.x.0 + 1).max(0)
+            * (case.m.1 - case.m.0 + 1).max(0)
+            * (case.a.1 - case.a.0 + 1).max(0)
+            * (case.s.1 - case.s.0 + 1).max(0);
+    }
+    println!("part two {part_two}");
+}

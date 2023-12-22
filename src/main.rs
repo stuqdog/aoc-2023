@@ -63,4 +63,7 @@ fn main() {
 
     println!("\nDay 21");
     solutions::day_21::main();
+
+    println!("\nDay 22");
+    solutions::day_22::main();
 }

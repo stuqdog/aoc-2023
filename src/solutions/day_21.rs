@@ -233,15 +233,13 @@ pub fn main() {
                     .or_insert(1i64);
                 acc
             });
-            let horizontal_sum = [(0, 1)]
-                .iter()
-                .fold(0, |acc, i| acc + part_two_map.get(i).unwrap_or(&0));
             println!("{part_two_map:?}");
             let num_values = part_two_map.iter().fold(HashMap::new(), |mut acc, (_, v)| {
                 acc.entry(v).and_modify(|i| *i += 1).or_insert(1);
                 acc
             });
             println!("{num_values:?}");
+            // why these grids? check the outputs in comments below!
             let grid_count_occurrences = [(1, -2), (-1, 2), (-1, -2), (1, 2)]
                 .iter()
                 .fold(0, |acc, i| acc + part_two_map.get(i).unwrap_or(&0));
